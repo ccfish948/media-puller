@@ -172,12 +172,11 @@ def download_url(
 
     cmd = [
         sys.executable, "-m", "yt_dlp",
-        "-x",                              # extract audio
+        "-x",
         "--audio-format", audio_format,
         "--audio-quality", quality,
         "--output", output_template,
         "--no-playlist",
-        "--print", "filename",
         "--no-warnings",
         * (cfg.get("yt_dlp_extra") or []),
         url,
@@ -202,13 +201,9 @@ def download_url(
                               out_dir / f"{sanitized}.{audio_format}",
                               None, description, tags, False, error=err)
 
-    # Parse output filename from yt-dlp --print filename
-    out_line = result.stdout.strip().split("\n")[-1] if result.stdout.strip() else ""
-    file_path = Path(out_line) if out_line else out_dir / f"{sanitized}.{audio_format}"
-
-    # Ensure the file exists
+    # Find the actual output file — yt-dlp converts webm → mp3 via -x flag
+    file_path = out_dir / f"{sanitized}.{audio_format}"
     if not file_path.exists():
-        # Try to find the file by glob
         found = list(out_dir.glob(f"{sanitized}.*"))
         if found:
             file_path = found[0]
